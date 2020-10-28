@@ -1,0 +1,87 @@
+#Solutions to Exercises for Session 5: Statistical Hypothesis Tests
+
+```{r setup, include=FALSE}
+library(tidyverse)
+library(janitor)
+
+
+SurveyData<-readRDS("SurveyData.RDS")
+
+
+```
+
+**Exercise 1: I would like to investigate the hypothesis that Democrats, on average, read more books in the past year than republicans**
+
+*1.1 - Firstly - create a subset of the data which only includes Democrats and Republicans, and excludes the respondents who responded as Independent. Assign this to a new object called `DemRep`*
+
+```{r x1_1, exercise=TRUE}
+DemRep<-filter(SurveyData,PoliticalParty!="Independent")
+
+#or
+SurveyData %>%
+  filter(PoliticalParty!="Independent") -> DemRep
+
+```
+
+Could also have solved using a pipe
+
+
+*1.2 Now calculate the mean, median and standard deviation of the number of books read by political party*
+```{r x1_2, exercise=TRUE}
+DemRep %>%
+  group_by(PoliticalParty) %>%
+    summarise(mean(Books),median(Books),sd(Books))
+
+```
+
+*1.3 Now produce histograms of the distribution of number of books read by political party*
+```{r x1_3, exercise=TRUE}
+ggplot(DemRep,aes(y=Books))+
+  geom_histogram()+
+    facet_wrap(~PoliticalParty)
+```
+
+*1.4 Based on the summary statistics and plots, choose an appropriate statistical method to test the null hypothesis that there is no difference in the number of books read by political party, conduct the test and interpret the results*
+
+```{r x1_4, exercise=TRUE}
+wilcox.test(Books~PoliticalParty,DemRep)
+```
+
+
+**Exercise 2: I am now (for some reason or other) interested in finding out if there is a relationship between whether a respondent's gender and whether or not they believe in ghosts?**
+
+*2.1 Firstly, produce a cross-tabulation of approval of gender and whether or not a respondent believes in ghosts.*
+```{r x2_1, exercise=TRUE}
+SurveyData %>%
+  tabyl(Gender,Ghosts)
+
+```
+
+*2.2 Convert this table into a sensible set of percentages (and format the numbers so they appear as percentages)*
+```{r x2_2, exercise=TRUE}
+SurveyData %>%
+  tabyl(Gender,Ghosts) %>%
+    adorn_percentages("row") %>%
+      adorn_pct_formatting()
+
+```
+
+
+
+*2.3 Produce an appropriate graph displaying the relationship between gender and the belief in ghosts*
+```{r x2_3, exercise=TRUE}
+ggplot(SurveyData,aes(y=Gender,fill=Ghosts))+
+  geom_bar(position="fill")+
+  labs(fill="Do you believe in ghosts?",x="Proportion")
+
+```
+
+
+*2.4 Based on the cross-tab select an appropriate statistical method to test the null hypothesis that there is no relationship between these variables, conduct the test, and interpret the results*
+
+```{r x2_4, exercise=TRUE}
+SurveyData %>%
+  tabyl(Gender,Ghosts) %>%
+    chisq.test()
+
+```

@@ -1,0 +1,175 @@
+---
+title: "Standard Statistical Hypothesis Tests in R"
+output: 
+  learnr::tutorial:
+    progressive: true
+    allow_skip: true
+    df_print: default
+runtime: shiny_prerendered
+description: >
+  Learn about the basic syntax of R.
+---
+
+
+```{r setup, include=FALSE}
+#devtools::install_github("rstudio/learnr")
+
+library(learnr)
+library(tidyverse)
+library(janitor)
+library(DT)
+tutorial_options(exercise.timelimit = 10)
+
+
+Pulse<-readRDS("Pulse.RDS")
+SurveyData<-readRDS("SurveyData.RDS")
+DemRep<-filter(SurveyData,PoliticalParty!="Independent")
+
+selfesteem<-data.frame(ID=1:10,AttractivenessBefore=c(4,7,5,3,9,7,7,8,1,10),AttractivenessAfter=c(8,7,4,7,9,8,5,9,10,8))
+
+```
+
+
+## Quiz
+
+*Question 1*
+
+I would like to do a t-test comparing age by political party. Summary statistics and plots are shown below.
+
+```{r,message=FALSE}
+Pulse %>%
+  group_by(PoliticalParty) %>%
+    summarise(mean(Age),median(Age),sd(Age),n())
+```
+
+```{r,message=FALSE}
+ggplot(data=Pulse,aes(x=Age))+
+  geom_histogram()+
+    facet_wrap(~PoliticalParty)
+```
+
+
+```{r Q1, echo=FALSE}
+question("Why should I not carry out a t-test on the data?",
+  answer("There are not an equal number of respondents from each political party",message="Although statistical power is highest when groups are equally sized, it is never a requirement to have equal numbers of responses"),
+  answer("Age is not normally distributed",message="Although age is not perfectly normally distributed, the approximation to normality looks close enough in this data"),
+  answer("Political party has more than two groups",correct = TRUE,message="We can only run a t-test when we have exactly two groups. We could filter our data to remove 'independents' and then run a t-test; or look at a different statistical method"),
+  answer("Respondents are not (statistically) independent of each other",message="We can assume respondents from this survey are independent (of each other)"),
+  answer("Age is not coded as a numeric variable in the data",message="AgeGrp is not a numeric variable, but Age is"),
+  answer("The variance of age is not equal across the groups",message="Variance is approximately equal for all groups; and this is not a requirement for the t.test funtion in R"),
+  allow_retry = TRUE,random_answer_order = TRUE
+)
+```
+*Question 2*
+
+```{r,echo=FALSE}
+Pulse %>%
+  tabyl(Race,PoliticalParty)
+```
+
+
+```{r Q2, echo=FALSE}
+question("I would like to do a chi-square comparing race by political party. A cross-tabulation is shown above. For what reason would it be innapropriate to to carry out a chi-square test on the data?",
+  answer("There are not an equal number of respondents from each political party",message="Although statistical power is highest when groups are equally sized, it is never a requirement to have equal numbers of responses"),
+  answer("Race is not chi-square distributed",message="This is not really a thing"),
+  answer("Political party has more than two groups",message="In a Chi-square test there is no limit to the number of groups"),
+  answer("Respondents are not independent of each other",message="We can assume respondents from this survey are independent"),
+  answer("The expected frequencies of some combinations of the categories are very low",correct=TRUE,message="There are very low numbers of 'Asian','Latino' and 'Other' respondents which will cause problems. We could consider either filtering our data to include only 'White' and 'Black respondents; combining the 'Asian','Latino' and 'Other' categories together, or using a Fisher test"),
+  allow_retry = TRUE,random_answer_order = TRUE
+)
+```
+*Question 3*
+```{r,echo=FALSE}
+Pulse %>%
+  tabyl(Race,PoliticalParty) %>%
+    adorn_percentages("row")
+```
+
+```{r Q3, echo=FALSE}
+question("What code did I run to obtain the table above, showing the proportions of people supporting each political party within each race?",
+         answer("Pulse %>%<br>
+  tabyl(Race,PoliticalParty) %>%<br>
+    adorn_percentages('row')",correct=TRUE),
+   answer("Pulse %>%<br>
+  tabyl(Race,PoliticalParty) %>%<br>
+    adorn_percentages('col')",message="Check whether the rows sum to 1 or whether the columns sum to 1"),
+   answer("Pulse %>%<br>
+  tabyl(Race,PoliticalParty) %>%<br>
+    adorn_pct_formatting()",message="This would add percentage formatting to a table, not calculate proportions"),
+   answer("Pulse %>%<br>
+  tabyl(Race,PoliticalParty) %>%<br>
+    adorn_ns()", message = "This is a function. But we haven't learnt about it, so it probably isn't the right answer!")
+         ,
+  allow_retry = TRUE,random_answer_order = TRUE
+)
+
+```
+*Question 4*
+
+I am interested in whether there was a significant difference between the average incomes by race, only considering white and black respondents. I produced some summaries, and conducted a Wilcoxon test to compare.
+
+```{r}
+Pulse %>%
+  filter(Race%in%c("White","Black")) %>%
+    ggplot(aes(y=Income,x=Race))+
+      geom_boxplot()
+
+Pulse %>%
+  filter(Race%in%c("White","Black")) %>%
+    group_by(Race)%>%
+      summarise(mean(Income),median(Income))
+
+Pulse %>%
+  filter(Race%in%c("White","Black")) %>%
+    wilcox.test(Income~Race,data=.)
+```
+
+```{r Q4, echo=FALSE}
+question("Which of the following is an appropriate conclusion to draw from this analysis?",
+         answer("There is no evidence that white and black people have different distributions of reported annual incomes",correct=TRUE),
+         answer("There is strong evidence that there is no difference between distribution of reported incomes of white and black people",
+                message="Hypothesis testing only ever provides evidence against the null hypothesis. It never provides evidence for the null hypothesis"),
+         answer("There is some evidence to suggest that black people earn more on average than white people",
+                message="Although the mean value is higher, the boxplots very clearly show that this is driven by a single observation"),
+         answer("There is a probability of 0.7375 that there is no difference between the average income of white and black people",
+                message="This is a common, but fundamentally incorrect, interpretation of p-values")
+         ,
+  allow_retry = TRUE,random_answer_order = TRUE
+)
+
+```
+
+
+
+## 'Pulse' dataset 
+
+The data we are using in this session is an extract of a survey conducted in the US in June 2018, as part of the Pulse of the Nation series of surveys. This survey was a representative sample of the American population. You can read more about the survey (and others from the same series) <a href="https://thepulseofthenation.com" target="_blank">here</a>. The data has been cleaned and edited slightly for use in this course.
+
+The dataset contains an extract of 356 responses to 10 of the survey questions, and has been imported to R as a data frame called `Pulse`.
+
+A summary of the columns in the dataset is below.
+
+```{r, echo=FALSE,message=FALSE,warning=FALSE}
+library(tidyverse)
+library(knitr)
+
+data.frame(Column=c("Gender","Age","AgeGrp","Race","Income","Education","PoliticalParty","PoliticalView","ApproveTrump","Attractiveness"),
+           Description=c("What gender do you identify with?","What is your age?","Age range","What is your race?",
+                         "About how much money do you make per year? (USD)","What is your highest level of education?",
+                         "In politics today, do you consider yourself a Democrat, a Republican, or Independent?",
+                         "Would you say you are liberal, conservative, or moderate?",
+                         "Do you approve, disapprove, or neither approve nor disapprove of how Donald Trump is handling his job as president?",
+                        "On a scale of 1-10, how physically attractive do you consider yourself?")) %>% kable()
+
+```
+
+
+```{r,echo=FALSE}
+DT::datatable(Pulse)
+```
+
+(You can use the arrow keys on your keyboard to scroll right in case the data table does not fit entirely on your screen)
+
+
+
+
