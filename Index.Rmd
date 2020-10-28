@@ -32,7 +32,7 @@ selfesteem<-data.frame(ID=1:10,AttractivenessBefore=c(4,7,5,3,9,7,7,8,1,10),Attr
 
 ## Quiz
 
-*Question 1*
+### Question 1
 
 I would like to do a t-test comparing age by political party. Summary statistics and plots are shown below.
 
@@ -60,7 +60,8 @@ question("Why should I not carry out a t-test on the data?",
   allow_retry = TRUE,random_answer_order = TRUE
 )
 ```
-*Question 2*
+
+### Question 2 
 
 ```{r,echo=FALSE}
 Pulse %>%
@@ -78,7 +79,11 @@ question("I would like to do a chi-square comparing race by political party. A c
   allow_retry = TRUE,random_answer_order = TRUE
 )
 ```
-*Question 3*
+
+
+### Question 3
+
+
 ```{r,echo=FALSE}
 Pulse %>%
   tabyl(Race,PoliticalParty) %>%
@@ -104,7 +109,8 @@ question("What code did I run to obtain the table above, showing the proportions
 )
 
 ```
-*Question 4*
+
+### Question 4
 
 I am interested in whether there was a significant difference between the average incomes by race, only considering white and black respondents. I produced some summaries, and conducted a Wilcoxon test to compare.
 
